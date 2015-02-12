@@ -1,4 +1,4 @@
-<h1> ECE 153 B - 2014: Hardware/Software Interfaces </h1>
+<h1> ECE 153 B - W14: Hardware/Software Interfaces </h1>
 
 <h3>Labs:</h3>
 
