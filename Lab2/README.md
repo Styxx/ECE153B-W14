@@ -10,5 +10,5 @@ Understand how address access and interrupts work on the ECE153B SYSboard
 * __stridy.v__ - Programmable counter to send variable amount of interrupts/sec using a FSM. Coded by Sahil Bissessur and Enrique Guiterrez
 
 
-
+<h6>Grade: 100% </h6>
 
