@@ -1,5 +1,5 @@
 # ECE153B-2014
-## Hardware/Software Interfaces
+##### Hardware/Software Interfaces
 
 
 Lab 2 - Timing/Interrupts w/ Programmable Logic
