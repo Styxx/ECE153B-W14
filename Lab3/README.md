@@ -8,5 +8,5 @@ DAC and ADC's
 * __sample.c__ - Example C code 
 
 
-<h6>Grade: ___In progress...___ </h6>
+<h6>Grade: <b><i>In progress...</i></b> </h6>
 
