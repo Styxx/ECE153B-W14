@@ -51,6 +51,7 @@ STRB		C1			81			Grey
 RW*		C2			82/32			White		//interface w/ chip WR*?
 Reset*		C3			83			Red		//Used for...?
 RDY		C4			84			Green
+H1 (clk)	B9			76			Grey		//Not pinned yet
 -----
 Name		EUROCard		CPLD(in)		Color
 Addr23		C32			22			Purple
