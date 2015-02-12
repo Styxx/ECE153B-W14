@@ -5,8 +5,5 @@ DAC and ADC's
 
 
 <h5>Files:</h5>
+* __Notes.txt__ - Notes for the lab, including current objectives and tasks
 * __sample.c__ - Example C code 
-
-
-<h6>Grade: <b><i>In progress...</i></b> </h6>
-
