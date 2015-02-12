@@ -1,6 +1,6 @@
 <h1> ECE 153 B - 2014: Hardware/Software Interfaces </h1>
 
-<h5>Labs:</h5>
+<h3>Labs:</h3>
 
 * __Lab 1__ - Familiarization with Lab Equipment - 100%
 
