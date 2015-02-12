@@ -1,2 +1,6 @@
 # ECE153B-2014
-#Go Fuck yourself
+## Hardware/Software Interfaces
+
+
+Lab 2 - Timing/Interrupts w/ Programmable Logic
+Lab 3 - Analog Interfaces (DAC/ADC)
