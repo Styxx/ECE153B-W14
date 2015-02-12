@@ -1,0 +1,78 @@
+/*****TASKS*****/
+
+Write (reuse) verilog similar to Lab2 Pt3 state machine
+	Goes according to timing diagram on pg 6 of TLC7226-DAC.pdf?
+	Given address 0x10dXXX, latch D7-D0 to DAC chip.
+		
+Write C code to execute verliog - see sample.c for example
+	Uses sin() to create variable sin wave output.
+	Sin wave created by constantly changing D7-D0 (See pg 7 of TLC7226-DAC.pdf)
+		Range from 1111 1111 to 0000 0000:		
+		1111 1111				+Vref(127/128)
+		1000 0001				+Vref(1/128)
+		1000 0000				0V
+		0111 1111				-Vref(1/128)
+		0000 0001				-Vref(127/128)
+		0000 0000				-Vref
+	DAC changes these bits to analog signal quickly => Sinwave
+	
+	
+Question: How to interface R/W* from DSP with WR* on chip? Do we need to?
+
+
+
+
+
+
+/*****BREADBOARD WIRING*****/
+			Name			Chip Pin(s)		Description
+Inputs:		DB7 - DB0		Pin 7 - 14		Data Bus lines
+			WR* 			Pin 15 			Write/Read - See pg 6 of TLC7226-DAC.pdf
+			A0 - A1 		Pin 16 - 17 	Channel Address, chooses 1/4 DAC's in chip - GROUNDED
+
+Outputs: 	OUTA 			Pin 2		 	Output of DAC A
+
+Voltages:	+12V (Green/Vc)	Pin 18 			Vdd - Supply Voltage
+			+5V	 (Red/Va)	Pin 4  			Vref - Reference Voltage
+			-5V  (Blue/Vb)	Pin 3, 5 		Vss, AGND
+			GND	 (Black)	Pin 6			DGND
+			
+Unused:		OUTB - OUTD		Pin 1, 19, 20 	Outputs of other DACS in chip
+			
+			
+			
+/*****CPLD PINOUT*****/
+Name		EUROCard		CPLD(in/out)	Color			Comments
+STRB		C1				81				Grey
+RW*			C2				82/32			White			//interface w/ chip WR*?
+Reset*		C3				83				Red				//Used for...?
+RDY			C4				84				Green
+-----
+Name		EUROCard		CPLD(in)		Color
+Addr23		C32				22				Purple
+Addr22		C31				21				Blue
+Addr21		C30				20				Green
+Addr20		C29				19				Yellow
+Addr19		C28				12				Orange
+Addr18		C27				11				Red
+Addr17		C26				10				Brown
+Addr16		C25				9				Black
+Addr15		C24				8				Purple
+Addr14		C23				7				Blue
+Addr13		C22				6				Green
+Addr12		C21				5				Yellow
+-----
+Name		EUROCard		CPLD(in/out)	DAC Chip		Color
+Data7		A8				100/56			7				Purple
+Data6		A7				99/55			8				Blue
+Data5		A6				98/54			9				Green
+Data4		A5				97/53			10				Yellow
+Data3		A4				96/52			11				Orange
+Data2		A3				95/51			12				Red
+Data1		A2				94/50			13				Brown
+Data0		A1				93/49			14				Black
+
+
+
+
+Last updated: 2/11/2015 by Styxx
