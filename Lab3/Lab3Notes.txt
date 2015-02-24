@@ -1,28 +1,33 @@
-Last updated: 20:39, 2/11/2015 by Styxx
+Last updated: 20:50 2/23/2015, by Styxx
 
 
 /*****TASKS*****/
 
-Write (reuse) verilog similar to Lab2 Pt3 state machine
-	Goes according to timing diagram on pg 6 of TLC7226-DAC.pdf?
-	Given address 0x10dXXX, latch D7-D0 to DAC chip.
-		
+** Figure out why Code Composer is being a butt and not letting us **
+** build the project when the source file is clearly in the same   **
+** directory as the project file.								   **
+
 Write C code to execute verliog - see sample.c for example
 	Uses sin() to create variable sin wave output.
 	Sin wave created by constantly changing D7-D0 (See pg 7 of TLC7226-DAC.pdf)
-		Range from 1111 1111 to 0000 0000:
-		BITS			OUTPUT
-		1111 1111		+Vref(127/128)
-		1000 0001		+Vref(1/128)
-		1000 0000		0V
-		0111 1111		-Vref(1/128)
-		0000 0001		-Vref(127/128)
-		0000 0000		-Vref
+		Range from 1111 1111 to 0000 0000:		
+		1111 1111				+Vref(127/128)
+		1000 0001				+Vref(1/128)
+		1000 0000				0V
+		0111 1111				-Vref(1/128)
+		0000 0001				-Vref(127/128)
+		0000 0000				-Vref
 	DAC changes these bits to analog signal quickly => Sinwave
 	
 	
+
+	
 Question: How to interface R/W* from DSP with WR* on chip? Do we need to?
 
+/*****DONE*****/
+DAC.v -	Write (reuse) verilog similar to Lab2 Pt3 state machine
+		Goes according to timing diagram on pg 6 of TLC7226-DAC.pdf?
+		Given address 0x10dXXX, latch D7-D0 to DAC chip.
 
 
 
