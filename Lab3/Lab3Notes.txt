@@ -73,12 +73,12 @@ Addr13		C22			6			Green
 Addr12		C21			5			Yellow
 -----
 Name		EUROCard		CPLD(in/out)		DAC Chip		Color
-Data7		A8			100/56			7			Purple
-Data6		A7			99/55			8			Blue
-Data5		A6			98/54			9			Green
-Data4		A5			97/53			10			Yellow
-Data3		A4			96/52			11			Orange
-Data2		A3			95/51			12			Red
+Data7		A8			100/44			7			Purple
+Data6		A7			99/43			8			Blue
+Data5		A6			98/46			9			Green
+Data4		A5			97/45			10			Yellow
+Data3		A4			96/48			11			Orange
+Data2		A3			95/47			12			Red
 Data1		A2			94/50			13			Brown
 Data0		A1			93/49			14			Black
 
