@@ -1,7 +1,6 @@
 /***************************************************************/
-/*  DAC verilog				      		      				   */
+/*  DAC verilog				      		       */
 /*  Sahil Bissessur, Vincent "Styxx" Chang, Enrique Gutierrez  */
-/*  Given address 0x10dXXX, latch D7-D0 to output (DAC chip)   */
 /***************************************************************/
 
 
@@ -58,8 +57,6 @@ module DAC(add, clk, strobe, Dout);
 	8'd100,8'd103,8'd106,8'd109,8'd112,8'd115,8'd119,8'd122,8'd125};
 	//reg [7:0] LUT [0:255];
 	//LUT[0] = 8'd128;
-	
-	// Previous LUT work saved in new 1 (see tabs above)
 
 	// If you need to add more states, then don't forget to increase
 	// the bit count if necessary
