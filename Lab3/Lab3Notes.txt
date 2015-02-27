@@ -1,21 +1,23 @@
-Last updated: 19:50, 2/26/2015, by Styxx
+Last updated: 19:54, 2/26/2015, by Styxx
 
 
 /*****TASKS*****/
 
 **
 Finish up figuring out how to get the Sin wave to work in Verilog
-	Currently, we have compilable sinwave code, but it's not accessing the LUT for whatever reason.
+	Currently, we have COMPILABLE sinwave code, but it's not accessing the LUT for whatever reason.
 	We need to figure out why the code isn't accessing the LUT.
+	This code currently outputs: a -5V line.
 **
-
-If you want to test Triangle DAC stuff, in the lab3 folder under tridac.v
+//If you want to test Triangle DAC stuff, in the lab3 folder under tridac.v
+	
+	
 	
 Once the Sine wave works in verilog this is what we do:
-	//THE SKELETON OF THIS HAS BEEN IMPLEMENTED. SEE THE CODE COMMENTS IN DAC.V
+//THE SKELETON OF THIS HAS BEEN IMPLEMENTED. SEE THE CODE COMMENTS IN DAC.V
 	Turn the verilog into a bigger FSM that chooses between the SinWave state
 		and the TriangleWave state. depending on the input of a certain
-		varible, it chooses between these states
+		variable, it chooses between these states
 	Modify counter such that it is able to change dependent on an outside variable
 		This is just like changing the period in Lab 2. We can use the same method.
 		Changing counter changes the frequency of our wave. Figure out according formula
