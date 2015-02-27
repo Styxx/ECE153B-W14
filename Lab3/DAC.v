@@ -1,115 +1,123 @@
-// Code your design here
 /***************************************************************/
-/*  DAC verilog												   */
+/*  DAC verilog				      		      				   */
 /*  Sahil Bissessur, Vincent "Styxx" Chang, Enrique Gutierrez  */
 /*  Given address 0x10dXXX, latch D7-D0 to output (DAC chip)   */
 /***************************************************************/
 
 
-module DAC(add, clk, strobe, WR, Dout);
+module DAC(add, clk, strobe, Dout);
 
 	input wire [11:0] add;
 	input wire clk;
 	input wire strobe;
   
-	output reg WR;			//Equiv of ready?
 	output reg [7:0] Dout;
 
-	//reg [7:0] Din = 8'b10000000;
-	//reg [7:0] preDin = 8'b01111111;
 	reg [7:0] Din = 8'b00000000;
-	reg up = 1;
+	
+	reg up = 1;						// If increasing or decreasing in tri_latch
+	reg [7:0] arb = 0;				// Increment-er through sine LUT
+	
+	// To change the counter, we left shift into it. This will then change the frequency of the wave.
+	// Larger counter = lower frequency.
+	// Need to find formula to make this work such that given a frequency,
+	// counter changes to correct value (DSP runs on 10Mhz)
 	reg [31:0] counter = 0;
-	reg [7:0] arb = 0;
-
-	reg [7:0] LUT [0:255];
-	LUT[0]=128; LUT[1]=131;LUT[2]=134;LUT[3]=137;LUT[4]=141;
-	LUT[5]=144;LUT[6]=147;LUT[7]=150;LUT[8]=153;LUT[9]=156;
-	LUT[10]=159;LUT[11]=162;LUT[12]=165;LUT[13]=168;LUT[14]=171;
-	LUT[15]=174;LUT[16]=177;LUT[17]=180;LUT[18]=183;LUT[19]=186;
-	LUT[20]=188;LUT[21]=191;LUT[22]=194;LUT[23]=196;LUT[24]=199;
-	LUT[25]=202;LUT[26]=204;LUT[27]=207;LUT[28]=209;LUT[29]=212;
-	LUT[30]=214;LUT[31]=216;LUT[32]=219;LUT[33]=221;LUT[34]=223;
-	LUT[35]=225;LUT[36]=227;LUT[37]=229;LUT[38]=231;LUT[39]=233;
-	LUT[40]=234;LUT[41]=236;LUT[42]=238;LUT[43]=239;LUT[44]=241;
-	LUT[45]=242;LUT[46]=244;LUT[47]=245;LUT[48]=246;LUT[49]=247;
-	LUT[50]=249;LUT[51]=250;LUT[52]=250;LUT[53]=251;LUT[54]=252;
-	LUT[55]=253;LUT[56]=254;LUT[57]=254;LUT[58]=255;LUT[59]=255;
-	LUT[60]=255;LUT[61]=256;LUT[62]=256;LUT[63]=256;LUT[64]=256;
-	LUT[65]=256;LUT[66]=256;LUT[67]=256;LUT[68]=255;LUT[69]=255;
-	LUT[70]=255;LUT[71]=254;LUT[72]=254;LUT[73]=253;LUT[74]=252;
-	LUT[75]=251;LUT[76]=250;LUT[77]=250;LUT[78]=249;LUT[79]=247;
-	LUT[80]=246;LUT[81]=245;LUT[82]=244;LUT[83]=242;LUT[84]=241;
-	LUT[85]=239;LUT[86]=238;LUT[87]=236;LUT[88]=234;LUT[89]=233;
-	LUT[90]=231;LUT[91]=229;LUT[92]=227;LUT[93]=225;LUT[94]=223;
-	LUT[95]=221;LUT[96]=219;LUT[97]=216;LUT[98]=214;LUT[99]=212;
-	LUT[100]=209;LUT[101]=207;LUT[102]=204;LUT[103]=202;LUT[104]=199;
-	LUT[105]=196;LUT[106]=194;LUT[107]=191;LUT[108]=188;LUT[109]=186;
-	LUT[110]=183;LUT[111]=180;LUT[112]=177;LUT[113]=174;LUT[114]=171;
-	LUT[115]=168;LUT[116]=165;LUT[117]=162;LUT[118]=159;LUT[119]=156;
-	LUT[120]=153;LUT[121]=150;LUT[122]=147;LUT[123]=144;LUT[124]=141;
-	LUT[125]=137;LUT[126]=134;LUT[127]=131;LUT[128]=128;LUT[129]=125;
-	LUT[130]=122;LUT[131]=119;LUT[132]=115;LUT[133]=112;LUT[134]=109;
-	LUT[135]=106;LUT[136]=103;LUT[137]=100;LUT[138]=97;LUT[139]=94;
-	LUT[140]=91;LUT[141]=88;LUT[142]=85;LUT[143]=82;LUT[144]=79;
-	LUT[145]=76;LUT[146]=73;LUT[147]=70;LUT[148]=68;LUT[149]=65;
-	LUT[150]=62;LUT[151]=60;LUT[152]=57;LUT[153]=54;LUT[154]=52;
-	LUT[155]=49;LUT[156]=47;LUT[157]=44;LUT[158]=42;LUT[159]=40;
-	LUT[160]=37;LUT[161]=35;LUT[162]=33;LUT[163]=31;LUT[164]=29;
-	LUT[165]=27;LUT[166]=25;LUT[167]=23;LUT[168]=22;LUT[169]=20;
-	LUT[170]=18;LUT[171]=17;LUT[172]=15;LUT[173]=14;LUT[174]=12;
-	LUT[175]=11;LUT[176]=10;LUT[177]=9;LUT[178]=7;LUT[179]=6;
-	LUT[180]=6;LUT[181]=5;LUT[182]=4;LUT[183]=3;LUT[184]=2;
-	LUT[185]=2;LUT[186]=1;LUT[187]=1;LUT[188]=1;LUT[189]=0;
-	LUT[190]=0;LUT[191]=0;LUT[192]=0;LUT[193]=0;LUT[194]=0;
-	LUT[195]=0;LUT[196]=1;LUT[197]=1;LUT[198]=1;LUT[199]=2;
-	LUT[200]=2;LUT[201]=3;LUT[202]=4;LUT[203]=5;LUT[204]=6;
-	LUT[205]=6;LUT[206]=7;LUT[207]=9;LUT[208]=10;LUT[209]=11;
-	LUT[210]=12;LUT[211]=14;LUT[212]=15;LUT[213]=17;LUT[214]=18;
-	LUT[215]=20;LUT[216]=22;LUT[217]=23;LUT[218]=25;LUT[219]=27;
-	LUT[220]=29;LUT[221]=31;LUT[222]=33;LUT[223]=35;LUT[224]=37;
-	LUT[225]=40;LUT[226]=42;LUT[227]=44;LUT[228]=47;LUT[229]=49;
-	LUT[230]=52;LUT[231]=54;LUT[232]=57;LUT[233]=60;LUT[234]=62;
-	LUT[235]=65;LUT[236]=68;LUT[237]=70;LUT[238]=73;LUT[239]=76;
-	LUT[240]=79;LUT[241]=82;LUT[242]=85;LUT[243]=88;LUT[244]=91;
-	LUT[245]=94;LUT[246]=97;LUT[247]=100;LUT[248]=103;LUT[249]=106;
-	LUT[250]=109;LUT[251]=112;LUT[252]=115;LUT[253]=119;LUT[254]=122;
-	LUT[255]=125;
+	reg [31:0] period = 32'd200;
 
 	
+	// To change the amplitude, we left shift into it
+	// This will then change the amplitude of the wave (MAX is 5)
+	// Make it so that Dout = Din/Amplitude?
+	// Or have amplitude be a percentage and we multiply that by Din?
+	reg [2:0] amplitude = 3'b001; // this needs to be changeable
+	
+
+	//http://jacaheyo.blogspot.com/2012/06/implementing-lut-in-verilog.html
+	reg [7:0] LUT [0:255] = {8'd128,8'd131,8'd134,8'd137,8'd141,8'd144,8'd147,
+	8'd150,8'd153,8'd156,8'd159,8'd162,8'd165,8'd168,8'd171,8'd174,8'd177,8'd180,
+	8'd183,8'd186,8'd188,8'd191,8'd194,8'd196,8'd199,8'd202,8'd204,8'd207,8'd209,
+	8'd212,8'd214,8'd216,8'd219,8'd221,8'd223,8'd225,8'd227,8'd229,8'd231,8'd233,
+	8'd234,8'd236,8'd238,8'd239,8'd241,8'd242,8'd244,8'd245,8'd246,8'd247,8'd249,
+	8'd250,8'd250,8'd251,8'd252,8'd253,8'd254,8'd254,8'd255,8'd255,8'd255,8'd256,
+	8'd256,8'd256,8'd256,8'd256,8'd256,8'd256,8'd255,8'd255,8'd255,8'd254,8'd254,
+	8'd253,8'd252,8'd251,8'd250,8'd250,8'd249,8'd247,8'd246,8'd245,8'd244,8'd242,
+	8'd241,8'd239,8'd238,8'd236,8'd234,8'd233,8'd231,8'd229,8'd227,8'd225,8'd223,
+	8'd221,8'd219,8'd216,8'd214,8'd212,8'd209,8'd207,8'd204,8'd202,8'd199,8'd196,
+	8'd194,8'd191,8'd188,8'd186,8'd183,8'd180,8'd177,8'd174,8'd171,8'd168,8'd165,
+	8'd162,8'd159,8'd156,8'd153,8'd150,8'd147,8'd144,8'd141,8'd137,8'd134,8'd131,
+	8'd128,8'd125,8'd122,8'd119,8'd115,8'd112,8'd109,8'd106,8'd103,8'd100,8'd97,
+	8'd94,8'd91,8'd88,8'd85,8'd82,8'd79,8'd76,8'd73,8'd70,8'd68,8'd65,8'd62,8'd60,
+	8'd57,8'd54,8'd52,8'd49,8'd47,8'd44,8'd42,8'd40,8'd37,8'd35,8'd33,8'd31,8'd29,
+	8'd27,8'd25,8'd23,8'd22,8'd20,8'd18,8'd17,8'd15,8'd14,8'd12,8'd11,8'd10,8'd9,
+	8'd7,8'd6,8'd6,8'd5,8'd4,8'd3,8'd2,8'd2,8'd1,8'd1,8'd1,8'd0,8'd0,8'd0,8'd0,
+	8'd0,8'd0,8'd0,8'd1,8'd1,8'd1,8'd2,8'd2,8'd3,8'd4,8'd5,8'd6,8'd6,8'd7,8'd9,
+	8'd10,8'd11,8'd12,8'd14,8'd15,8'd17,8'd18,8'd20,8'd22,8'd23,8'd25,8'd27,8'd29,
+	8'd31,8'd33,8'd35,8'd37,8'd40,8'd42,8'd44,8'd47,8'd49,8'd52,8'd54,8'd57,8'd60,
+	8'd62,8'd65,8'd68,8'd70,8'd73,8'd76,8'd79,8'd82,8'd85,8'd88,8'd91,8'd94,8'd97,
+	8'd100,8'd103,8'd106,8'd109,8'd112,8'd115,8'd119,8'd122,8'd125};
+	//reg [7:0] LUT [0:255];
+	//LUT[0] = 8'd128;
+	
+	// Previous LUT work saved in new 1 (see tabs above)
+
+	// If you need to add more states, then don't forget to increase
+	// the bit count if necessary
 	parameter starting =	2'b00;
-	parameter pre_latch =	2'b01;
-	parameter latch =	2'b10;
-	parameter post_latch =	2'b11;
+	parameter tri_latch =	2'b01;
+	parameter sine_latch = 	2'b10;
+	parameter latch =		2'b11;
 
-	reg [1:0] state = pre_latch;
-	
-	// Process: Address valid --> WR low --> Data valid
+	// If you're only testing a specific latch, set it to that latch
+	// Otherwise, if you're testing the entire thing, set it to starting
+	reg [1:0] state = tri_latch;
 	
 	always @ (negedge clk) begin
 	
 		case (state)
 			// Starting idle state
-			// Checks for address 0x10d and sends to pre-latch if found.
+			// Checks for addresses and executes according action
 			starting:
 				begin
-					// Output
-					//Dout <= 7'bz;
 					
-					// Next State
-					//if((add[11:0] == 12'h10d) && (~strobe)) begin
-						state <= pre_latch;
-						WR <= 1'b0;
-					//end
-						
+					// Next State					
+					if ((add[11:0] == 12'h10a) && (~strobe)) begin
+						state <= sine_latch;
+					end
+					if ((add[11:0] == 12'h10b) && (~strobe)) begin
+						state <= tri_latch;
+					end
+					
+					if ((add[11:0] == 12'h10c) && (~strobe)) begin
+						amplitude <= amplitude << 1;
+						amplitude[0] <= 0;
+					
+					end
+					
+					if ((add[11:0] == 12'h10d) && (~strobe)) begin
+						amplitude <= amplitude << 1;
+						amplitude[0] <= 1;
+					end
+					
+					if ((add[11:0] == 12'h10e) && (~strobe)) begin
+						period <= period << 1;
+						period[0] <= 0;
+					end
+					/* //Unknown as to why inserting this segment of code ruins the JEDEC file and reins compiliation
+					if ((add[11:0] == 12'h10f) && (~strobe)) begin
+						period <= period << 1;
+						period[0] <= 1;
+					end*/
+					
 				end
 			
-			// Pre-latch state
-			// Prepares Din and sets WR to 0
-			pre_latch:
+			// Tri_latch
+			// Outputs a triangle wave
+			// Currently disregards amplitude changes
+			tri_latch:
 				begin
 					// Output
-					/*if (counter == 200) begin					// Smaller counter = higher frequency
+					if (counter == 200) begin		// Smaller counter = higher frequency
 						counter <= 0;
 						if (up == 1) begin
 							Din <= Din + 1;
@@ -127,13 +135,24 @@ module DAC(add, clk, strobe, WR, Dout);
 					end
 					else begin
 						counter <= counter + 1;
-					end*/
-					if (counter == 200) begin
+					end
+					
+					
+					// Next State
+					state <= latch;
+					
+				end
+			
+			// Sine latch
+			// Outputs a sin wave
+			// Currently disregards amplitude changes
+			sine_latch:
+				begin
+					// Sine wave
+					if (counter == period) begin
 						counter <= 0;
-						if (up == 1) begin
-							Din <= LUT[arb];
-							arb <= arb + 1;	
-						end
+						Din <= LUT[arb];
+						arb <= arb + 1;	
 					end
 					else begin
 						counter <= counter + 1;
@@ -141,7 +160,6 @@ module DAC(add, clk, strobe, WR, Dout);
 					
 					// Next State
 					state <= latch;
-					
 				end
 		
 			// Latch State
@@ -152,20 +170,11 @@ module DAC(add, clk, strobe, WR, Dout);
 					Dout <= Din;
 					
 					// Next State
-					state <= post_latch;
+					// If you're only testing a specific latch, set it to that latch
+					// Otherwise, if you're testing the entire thing, set it to starting
+					state <= tri_latch;
 				end
 			
-			// Post-Latch State
-			// Sets WR back to 1 before going back to idle.
-			post_latch:
-				begin
-					// Output
-					WR <= 1'b1;
-					
-					// Next State
-					state <= pre_latch;
-				
-				end
 				
 		endcase
 	
