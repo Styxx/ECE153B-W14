@@ -1,13 +1,30 @@
-Last updated: 20:50 2/23/2015, by Styxx
+Last updated: 14:47, 2/26/2015, by Styxx
 
 
 /*****TASKS*****/
 
-** Figure out why Code Composer is being a butt and not letting us **
-** build the project when the source file is clearly in the same   **
-** directory as the project file.								   **
+Finish up figuring out how to get the Sin wave to work in Verilog
+Once the Sine wave works in verilog this is what we do:
+	Turn the verilog into a bigger FSM that chooses between the SinWave state
+		and the TriangleWave state. depending on the input of a certain
+		varible, it chooses between these states
+	Modify counter such that it is able to change dependent on an outside variable
+		This is just like changing the period in Lab 2. We can use the same method.
+		Changing counter changes the frequency of our wave. Figure out according formula
+		(how much do we count to to get a certain frequency?)
+	Figure out how to change the amplitude of the wave.
+		This changes how high or low we're counting to for Dout.
+		Changing the amplitude in the interface, you can only reduce the wave (can't make it
+		bigger than +/- 5V, since 5V is the Vref.)
+		Figure out how to limit how high and how low Dout go. this will change the relative
+		peak-to-peaks of the wave
+		
+	
 
 Write C code to execute verliog - see sample.c for example
+	
+	
+/* IGNORE THIS SECTION */
 	Uses sin() to create variable sin wave output.
 	Sin wave created by constantly changing D7-D0 (See pg 7 of TLC7226-DAC.pdf)
 		Range from 1111 1111 to 0000 0000:		
@@ -18,14 +35,12 @@ Write C code to execute verliog - see sample.c for example
 		0000 0001				-Vref(127/128)
 		0000 0000				-Vref
 	DAC changes these bits to analog signal quickly => Sinwave
-	
-	
+/* IGNORE THIS SECTION */
 
-	
-Question: How to interface R/W* from DSP with WR* on chip? Do we need to?
+
 
 /*****DONE*****/
-DAC.v -	Write (reuse) verilog similar to Lab2 Pt3 state machine
+TrigDAC.v -	Write (reuse) verilog similar to Lab2 Pt3 state machine
 		Goes according to timing diagram on pg 6 of TLC7226-DAC.pdf?
 		Given address 0x10dXXX, latch D7-D0 to DAC chip.
 
