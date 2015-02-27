@@ -1,4 +1,4 @@
-Last updated: 19:54, 2/26/2015, by Styxx
+Last updated: 00:53 2/27/2015, by Styxx
 
 
 /*****TASKS*****/
@@ -33,9 +33,9 @@ Once the Sine wave works in verilog this is what we do:
 
 Write C code to execute verliog - see sample.c for example
 	create an interface that does these following things
-		Make changing the frequency a certain address (according to our verilog)
-		Make changing the amplitude a certain address (according to our verilog)
-		Make choosing sinwave or trianglewave two different addresses (according to our verilog)
+		Make changing the frequency a certain address (left shift 0 = h'10e, left shift 1 = h'10f)
+		Make changing the amplitude a certain address (left shift 0 = h'10c, left shift 1 = h'10d)
+		Make choosing sinwave or trianglewave two different addresses (sine = h'10a, triangle = h'10b)
 	(Just like what e2.out does in the previous lab. We're creating our own interface to this lab.)
 	
 	
