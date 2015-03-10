@@ -2,7 +2,6 @@ module fsm(interrupt, redMotorWire, blackMotorWire, setCW, ready, add, clk, stro
 	input wire [11:0] add;
   	input wire clk;
   	
-  	
   	//Handshaking
   	input wire strobe;
   	output reg ready;
@@ -23,11 +22,10 @@ module fsm(interrupt, redMotorWire, blackMotorWire, setCW, ready, add, clk, stro
   	reg prevChB;					// Previous value of ChB
   	reg goingCW;					// 1 if motor is going CW; else 0
 
-	
-  	parameter starting				=	5'b00001;
-  	parameter setTo					=	5'b00010;
-  	parameter ready_setTo			=	5'b00011;
-  	parameter readDirection			=	5'b00100;
+  	parameter starting		=	5'b00001;
+  	parameter setTo			=	5'b00010;
+  	parameter ready_setTo		=	5'b00011;
+  	parameter readDirection		=	5'b00100;
   	parameter ready_readDirection	=	5'b00101;
   	
   	reg [4:0] state = starting;
@@ -39,16 +37,16 @@ module fsm(interrupt, redMotorWire, blackMotorWire, setCW, ready, add, clk, stro
 	      		ready <= 1'bz;
 	      		counter <= 0;
 	      		
-	      		if((add[11:0] == 12'h10c)&&(~strobe)) begin				// Set direction to CW
+	      		if((add[11:0] == 12'h10c)&&(~strobe)) begin		// Set direction to CW
 	      			state <= setTo;
 	      			setCW <= 1;
 	      		end
-	      		if((add[11:0] == 12'h10d)&&(~strobe)) begin				// Set direction to CCW
+	      		if((add[11:0] == 12'h10d)&&(~strobe)) begin		// Set direction to CCW
 	      			state <= setTo;
 	      			setCW <= 0;
 	      		end
-	      		if((add[11:0] == 12'h10f)&&(~strobe)) begin				// Read back sensed direction of rotation
-	      			state <= readDirection;								// Unsure how to implement this
+	      		if((add[11:0] == 12'h10f)&&(~strobe)) begin		// Read back sensed direction of rotation
+	      			state <= readDirection;				// Unsure how to implement this
 	      		end
 	      	end
 	      	
