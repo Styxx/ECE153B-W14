@@ -1,114 +1,240 @@
-module fsm(interrupt, redMotorWire, blackMotorWire, setCW, ready, add, clk, strobe, chA, ChB);
+module fsm(interrupt, pwmout, data, ready, add, clk, strobe, RW, chA, chB);
 	input wire [11:0] add;
   	input wire clk;
   	
   	//Handshaking
-  	input wire strobe;
+  	input strobe;
+	input RW;
   	output reg ready;
+	reg enable;
   	
   	// From the motor
   	input wire chA;
   	input wire chB;
 	
 	// Output (interrupt)
-  	output reg interrupt;
+  	output reg interrupt = 1;
   	output reg redMotorWire;
   	output reg blackMotorWire;
-  	output reg setCW;				// The data bit 10f reads
+  	output reg data;				// The data bit 10f reads
+		
+	reg [15:0] counter = 0;
+	reg [4:0] last5pos = 0;
+
+	// PWM stuff
+	reg [8:0] pwm = 0;
+	reg [8:0] pwmcounter = 0;
+	output reg pwmout = 1;
+ 
+	// State machines
+	// State machine to check motor direction
+	parameter pre_starting				=	3'b000;
+	parameter state00				=	3'b001;
+	parameter state01				=	3'b010;
+	parameter state10				=	3'b011;
+	parameter state11				=	3'b100;
+	reg [2:0] direction = pre_starting;
 	
-	// Interior, changable registers
-  	reg [15:0] counter;				// Counts motor position
-  	reg prevChA;					// Previous value of ChA
-  	reg prevChB;					// Previous value of ChB
-  	reg goingCW;					// 1 if motor is going CW; else 0
-
-  	parameter starting		=	5'b00001;
-  	parameter setTo			=	5'b00010;
-  	parameter ready_setTo		=	5'b00011;
-  	parameter readDirection		=	5'b00100;
-  	parameter ready_readDirection	=	5'b00101;
+	// State machine for handshaking
+	parameter starting 				= 	2'b00;
+	parameter strb_low				= 	2'b11;
+	parameter rdy_low				=	2'b01;
+	parameter rdy_hi				=	2'b10;
+	reg [1:0] handshaking = starting;
   	
-  	reg [4:0] state = starting;
   	
-  	// How2handshake: ready = Z. @ address/~strobe. Do action, ready = 0. Back to starting, ready = 1
   	always @ (negedge clk) begin
-  		case(state)
-	      	starting: begin
-	      		ready <= 1'bz;
-	      		counter <= 0;
-	      		
-	      		if((add[11:0] == 12'h10c)&&(~strobe)) begin		// Set direction to CW
-	      			state <= setTo;
-	      			setCW <= 1;
-	      		end
-	      		if((add[11:0] == 12'h10d)&&(~strobe)) begin		// Set direction to CCW
-	      			state <= setTo;
-	      			setCW <= 0;
-	      		end
-	      		if((add[11:0] == 12'h10f)&&(~strobe)) begin		// Read back sensed direction of rotation
-	      			state <= readDirection;				// Unsure how to implement this
-	      		end
-	      	end
-	      	
-	      	setTo: begin
-	      		ready <= 1'b0;
-	      		state <= ready_setToCW;
-	      	end
-	      	ready_setTo: begin
-	      		ready <= 1'b1;
-	      		state <= starting;
-	      	end
 
-			readDirection: begin
-				ready <= 1'b0;
+		interrupt <= 1'b1;
+  		
+		/* DIRECTION STATE MACHINE */
+		case(direction)
+			pre_starting: begin
+				if((chA == 0) && (chB == 0)) begin
+					direction <= state00;
+				end
+				else if((chA == 0) && (chB == 1)) begin
+					direction <= state01;
+				end
+				else if((chA == 1) && (chB == 0)) begin
+					direction <= state10;
+				end
+				else if((chA == 1) && (chB == 1)) begin
+					direction <= state11;
+				end
+			end
+
+				state00: begin
+				if((chA == 0) && (chB == 0)) begin	//NC
+					direction <= state00;
+				end
+				else if((chA == 0) && (chB == 1)) begin	//CW
+					interrupt <= 1'b0;
+					counter <= counter + 1;
+					last5pos <= {last5pos[3:0], 1'b1};
+					direction <= state01;
+				end
+				else if((chA == 1) && (chB == 0)) begin	//cCW
+					interrupt <= 1'b0;
+					counter <= counter - 1;
+					last5pos <= {last5pos[3:0], 1'b0};
+					direction <= state10;
+				end
+				else if((chA == 1) && (chB == 1)) begin	//Err
+					direction <= state11;
+				end
+			end
+
+			state01: begin
+				if((chA == 0) && (chB == 0)) begin	//cCW
+					interrupt <= 1'b0;
+					counter <= counter - 1;
+					last5pos <= {last5pos[3:0], 1'b0};
+					direction <= state00;
+				end
+				else if((chA == 0) && (chB == 1)) begin	//NC
+					direction <= state01;
+				end
+				else if((chA == 1) && (chB == 0)) begin //Err
+					direction <= state10;
+				end
+				else if((chA == 1) && (chB == 1)) begin	//CW
+					interrupt <= 1'b0;
+					counter <= counter + 1;
+					last5pos <= {last5pos[3:0], 1'b1};
+					direction <= state11;
+				end
+							
 			end
 			
-			ready_readDirection: begin
-				ready <= 1'b1;
+			state10: begin
+				if((chA == 0) && (chB == 0)) begin	//CW
+					interrupt <= 1'b0;
+					counter <= counter + 1;
+					last5pos <= {last5pos[3:0], 1'b1};
+					direction <= state00;
+				end
+				else if((chA == 0) && (chB == 1)) begin	//Err
+					direction <= state01;
+				end
+				else if((chA == 1) && (chB == 0)) begin //NC
+					direction <= state10;
+				end
+				else if((chA == 1) && (chB == 1)) begin	//cCW
+					interrupt <= 1'b0;
+					counter <= counter - 1;
+					last5pos <= {last5pos[3:0], 1'b0};
+					direction <= state11;
+				end
+			
 			end
-	    endcase
-	    
-	    
-	    /* ** Outside of the state machine ** */
-	    if ((prevChA == chA) && (prevChB == chB)) begin
-			interrupt = 1;
-		end
-		else if((prevChA != chA) && (prevChB == chB)) begin
-			interrupt <= 0;
-			if (setCW == 1) begin
-				goingCW <= 1;
-			end
-			else begin
-				goingCW <= 0;
-			end
-		end	
-		else if((prevChA == chA) && (prevChB != chB)) begin
-			interrupt <= 0;
-			if (setCW == 1) begin
-				goingCW <= 1;
-			end
-			else begin
-				goingCW <= 0;
-			end
-		end
-		prevChA <= chA;
-		prevChB <= chB;
 
-	    if(goingCW == 1) begin
-			counter <= counter + 1;
-	    end
-	    else begin
-	    	counter <= counter - 1;
-	    end
-	    
-	    if(setCW == 1) begin
-	    	redMotorWire <= 1;
-	    	blackMotorWire <= 0;
-	    end
-	    else begin
-	    	redMotorWire <= 0;
-	    	blackMotorWire <= 1;
-	    end
-	    
+			state11: begin
+				if((chA == 0) && (chB == 0)) begin	//Err
+					direction <= state00;
+				end
+				else if((chA == 0) && (chB == 1)) begin	//cCw
+					interrupt <= 1'b0;
+					counter <= counter - 1;
+					last5pos <= {last5pos[3:0], 1'b0};
+					direction <= state01;
+				end
+				else if((chA == 1) && (chB == 0)) begin //CW
+					interrupt <= 1'b0;
+					counter <= counter + 1;
+					last5pos <= {last5pos[3:0], 1'b1};
+					direction <= state10;
+				end
+				else if((chA == 1) && (chB == 1)) begin	//NC
+					direction <= state11;
+				end
+			end
+		endcase
+		
+		
+		/* ADDRESS CHECK */
+		if (((add == 12'h10c) || (add == 12'h10d) || (add == 12'h10e) || (add == 12'h10f))
+			&& (~strobe)) begin
+			
+			case(add)
+				// Going clockwise
+				12'h10c: begin
+					// Handshake
+					enable <= 1'b1;
+				end
+				
+				// Going counter-clockwise
+				12'h10d: begin
+					// Handshake
+					enable <= 1'b1;			
+				end
+				
+				// Left shift in 0 for PWM
+				12'h10e: begin
+					if ((handshaking == starting) && (RW == 0)) begin
+						pwm <= {pwm[7:0],1'b0}; 				//Left shift bit 0 in here
+						pwmcounter <= 0;
+						handshaking <= rdy_low;				// Do handshaking
+					end
+				
+				end
+				
+				
+				12'h10f: begin
+					if (handshaking == starting) begin
+						handshaking <= rdy_low;
+					end
+					if (RW == 0) begin
+						pwm <= {pwm[7:0],1'b1};					// Left shift bit 1 in here
+						pwmcounter <= 0;
+					end
+					
+					// Send current rotation of motor to 10f to read
+					data <= last5pos[0];
+					
+				
+				end
+			
+			endcase
+			
+		end
+
+		/* HANDSHAKING STATE MACHINE */
+		case (handshaking)
+			starting: begin
+				ready <= 1'bz;
+				if (enable ==1) begin
+					handshaking <= rdy_low;
+				end
+			end
+			/*
+			strb_low: begin
+				handshaking <= rdy_low;
+			end
+			*/
+			rdy_low: begin
+				ready <= 1'b0;
+				handshaking <= rdy_hi;
+			end
+			
+			rdy_hi: begin
+				enable <= 1'b0;
+				ready <= 1'b1;
+				handshaking <= starting;
+			end	
+		endcase
+
+
+		if (pwmcounter < pwm) begin
+			pwmout <= 1;
+		end
+		else begin pwmout <= 0; end
+
+		if (pwmcounter == 499) begin
+			pwmcounter <= 0;
+		end
+		else	begin
+			pwmcounter <= pwmcounter + 1;
+		end
   	end
 endmodule
