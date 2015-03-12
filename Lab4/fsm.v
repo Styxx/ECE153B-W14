@@ -1,4 +1,4 @@
-module fsm(interrupt, pwmout, data, ready, add, clk, strobe, RW, chA, chB);
+module fsm(interrupt, pwmout, data, setCW, ready, add, clk, strobe, RW, chA, chB);
 	input wire [11:0] add;
   	input wire clk;
   	
@@ -17,9 +17,10 @@ module fsm(interrupt, pwmout, data, ready, add, clk, strobe, RW, chA, chB);
   	output reg redMotorWire;
   	output reg blackMotorWire;
   	output reg data;				// The data bit 10f reads
+	output reg setCW;				// Data bit sent to H bridge
 		
 	reg [15:0] counter = 0;
-	reg [4:0] last5pos = 0;
+	reg [2:0] last5pos = 0;
 
 	// PWM stuff
 	reg [8:0] pwm = 0;
@@ -71,13 +72,13 @@ module fsm(interrupt, pwmout, data, ready, add, clk, strobe, RW, chA, chB);
 				else if((chA == 0) && (chB == 1)) begin	//CW
 					interrupt <= 1'b0;
 					counter <= counter + 1;
-					last5pos <= {last5pos[3:0], 1'b1};
+					last5pos <= {last5pos[1:0], 1'b1};
 					direction <= state01;
 				end
 				else if((chA == 1) && (chB == 0)) begin	//cCW
 					interrupt <= 1'b0;
 					counter <= counter - 1;
-					last5pos <= {last5pos[3:0], 1'b0};
+					last5pos <= {last5pos[1:0], 1'b0};
 					direction <= state10;
 				end
 				else if((chA == 1) && (chB == 1)) begin	//Err
@@ -89,7 +90,7 @@ module fsm(interrupt, pwmout, data, ready, add, clk, strobe, RW, chA, chB);
 				if((chA == 0) && (chB == 0)) begin	//cCW
 					interrupt <= 1'b0;
 					counter <= counter - 1;
-					last5pos <= {last5pos[3:0], 1'b0};
+					last5pos <= {last5pos[1:0], 1'b0};
 					direction <= state00;
 				end
 				else if((chA == 0) && (chB == 1)) begin	//NC
@@ -101,7 +102,7 @@ module fsm(interrupt, pwmout, data, ready, add, clk, strobe, RW, chA, chB);
 				else if((chA == 1) && (chB == 1)) begin	//CW
 					interrupt <= 1'b0;
 					counter <= counter + 1;
-					last5pos <= {last5pos[3:0], 1'b1};
+					last5pos <= {last5pos[1:0], 1'b1};
 					direction <= state11;
 				end
 							
@@ -111,7 +112,7 @@ module fsm(interrupt, pwmout, data, ready, add, clk, strobe, RW, chA, chB);
 				if((chA == 0) && (chB == 0)) begin	//CW
 					interrupt <= 1'b0;
 					counter <= counter + 1;
-					last5pos <= {last5pos[3:0], 1'b1};
+					last5pos <= {last5pos[1:0], 1'b1};
 					direction <= state00;
 				end
 				else if((chA == 0) && (chB == 1)) begin	//Err
@@ -123,7 +124,7 @@ module fsm(interrupt, pwmout, data, ready, add, clk, strobe, RW, chA, chB);
 				else if((chA == 1) && (chB == 1)) begin	//cCW
 					interrupt <= 1'b0;
 					counter <= counter - 1;
-					last5pos <= {last5pos[3:0], 1'b0};
+					last5pos <= {last5pos[1:0], 1'b0};
 					direction <= state11;
 				end
 			
@@ -136,13 +137,13 @@ module fsm(interrupt, pwmout, data, ready, add, clk, strobe, RW, chA, chB);
 				else if((chA == 0) && (chB == 1)) begin	//cCw
 					interrupt <= 1'b0;
 					counter <= counter - 1;
-					last5pos <= {last5pos[3:0], 1'b0};
+					last5pos <= {last5pos[1:0], 1'b0};
 					direction <= state01;
 				end
 				else if((chA == 1) && (chB == 0)) begin //CW
 					interrupt <= 1'b0;
 					counter <= counter + 1;
-					last5pos <= {last5pos[3:0], 1'b1};
+					last5pos <= {last5pos[1:0], 1'b1};
 					direction <= state10;
 				end
 				else if((chA == 1) && (chB == 1)) begin	//NC
@@ -161,12 +162,14 @@ module fsm(interrupt, pwmout, data, ready, add, clk, strobe, RW, chA, chB);
 				12'h10c: begin
 					// Handshake
 					enable <= 1'b1;
+					setCW <= 1'b1;
 				end
 				
 				// Going counter-clockwise
 				12'h10d: begin
 					// Handshake
-					enable <= 1'b1;			
+					enable <= 1'b1;
+					setCW <= 1'b0;
 				end
 				
 				// Left shift in 0 for PWM
@@ -174,7 +177,7 @@ module fsm(interrupt, pwmout, data, ready, add, clk, strobe, RW, chA, chB);
 					if ((handshaking == starting) && (RW == 0)) begin
 						pwm <= {pwm[7:0],1'b0}; 				//Left shift bit 0 in here
 						pwmcounter <= 0;
-						handshaking <= rdy_low;				// Do handshaking
+						handshaking <= strb_low;				// Do handshaking
 					end
 				
 				end
@@ -182,7 +185,7 @@ module fsm(interrupt, pwmout, data, ready, add, clk, strobe, RW, chA, chB);
 				
 				12'h10f: begin
 					if (handshaking == starting) begin
-						handshaking <= rdy_low;
+						handshaking <= strb_low;
 					end
 					if (RW == 0) begin
 						pwm <= {pwm[7:0],1'b1};					// Left shift bit 1 in here
@@ -204,14 +207,14 @@ module fsm(interrupt, pwmout, data, ready, add, clk, strobe, RW, chA, chB);
 			starting: begin
 				ready <= 1'bz;
 				if (enable ==1) begin
-					handshaking <= rdy_low;
+					handshaking <= strb_low;
 				end
 			end
-			/*
+			
 			strb_low: begin
 				handshaking <= rdy_low;
 			end
-			*/
+			
 			rdy_low: begin
 				ready <= 1'b0;
 				handshaking <= rdy_hi;
