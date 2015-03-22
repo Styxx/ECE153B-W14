@@ -7,4 +7,4 @@
 
 
 <h5>Files:</h5>
-* __fsm.v__ - Finite state machine that completes objectives 1 and 2 without the PWM
+* __fsm.v__ - Finite state machine that completes objectives 1 and 2 without a fully functioning PWM
