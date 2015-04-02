@@ -9,3 +9,5 @@
 * __Lab 3__ - Analog Interfaces (DAC/ADC) - 30%
 
 * __Lab 4__ - DC Motor Control - 85%
+
+<h3>Grade: B+</h3>
